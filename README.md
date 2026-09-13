@@ -2,7 +2,7 @@
 
 An offline Android flight-test aid for measuring the actual climb performance of a Cessna 140 without relying on the airplane's VSI.
 
-## Version 1.1 features
+## Version 1.2 features
 
 - Guides timed climb runs at user-selected indicated airspeeds.
 - Creates reciprocal A/B heading pairs to reduce wind bias.
@@ -11,6 +11,8 @@ An offline Android flight-test aid for measuring the actual climb performance of
 - Identifies a Vx candidate with the FAA tangent-from-origin proxy: average climb rate divided by IAS.
 - Records native Android GPS distance, groundspeed, heading, and accuracy for separate ground-gradient documentation.
 - Lets the pilot reject runs affected by turbulence, lift/sink, IAS error, or power anomalies.
+- Excludes reciprocal pairs differing by more than 50 fpm from Vx/Vy until they are repeated.
+- Withholds Vx/Vy when no qualified positive-climb reciprocal pair remains.
 - Suggests a second, finer test pass around the preliminary Vx candidate.
 - Stores all test data locally and exports CSV or JSON backups.
 - Works offline and keeps the phone screen awake during a run.

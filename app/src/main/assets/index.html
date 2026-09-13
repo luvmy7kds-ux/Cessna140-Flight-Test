@@ -109,11 +109,11 @@ canvas{width:100%;height:260px;background:#0b1e30;border:1px solid #27465f;borde
   <div class="card">
     <h2>Measured results</h2>
     <div class="grid3">
-      <div class="metric"><div class="k">Best tested Vy</div><div class="v" id="vyOut">—</div><div class="small">highest reciprocal-pair climb rate</div></div>
+      <div class="metric"><div class="k">Best tested Vy</div><div class="v" id="vyOut">—</div><div class="small">highest qualified reciprocal-pair climb rate</div></div>
       <div class="metric"><div class="k">Best tested Vx candidate</div><div class="v" id="vxOut">—</div><div class="small" id="vxMethod">needs accepted A/B pairs</div></div>
       <div class="metric"><div class="k">Best climb rate</div><div class="v" id="bestFpmOut">—</div><div class="small">ft/min</div></div>
     </div>
-    <div class="note warn" style="margin-top:12px">These are <b>measured test-condition results</b>, not new approved operating limitations. Vx/Vy vary with weight and altitude. The Vx candidate uses the FAA tangent-from-origin method on the reciprocal-pair climb curve; phone GPS ground gradient is displayed separately and is <b>not</b> used to choose Vx.</div><div id="refineBox" class="note hidden" style="margin-top:12px"></div>
+    <div class="note warn" style="margin-top:12px">These are <b>measured test-condition results</b>, not new approved operating limitations. Vx/Vy vary with weight and altitude. The Vx candidate uses the FAA tangent-from-origin method on qualified reciprocal-pair climb data; phone GPS ground gradient is displayed separately and is <b>not</b> used to choose Vx. Pairs marked <b>Repeat?</b> or <b>No climb</b> are excluded from Vx/Vy.</div><div id="refineBox" class="note hidden" style="margin-top:12px"></div>
   </div>
   <div class="card">
     <h2>Reciprocal-pair table</h2>
@@ -138,7 +138,7 @@ canvas{width:100%;height:260px;background:#0b1e30;border:1px solid #27465f;borde
     <div class="row" style="margin-top:12px"><button class="btn good" id="installApp">Install app on this phone</button></div>
     <div class="small installStatus" id="installStatus">If Android does not show an install prompt, use your browser menu → <b>Add to Home screen</b> / <b>Install app</b>.</div>
     <p class="small">No flight data is transmitted anywhere by this app. Everything is stored locally in the browser unless you export it yourself.</p>
-    <p class="small version">Version 1.1 Android · FAA AC 90-89C climb-test method</p>
+    <p class="small version">Version 1.2 Android · FAA AC 90-89C climb-test method</p>
   </div>
 </section>
 </main>
@@ -149,6 +149,7 @@ canvas{width:100%;height:260px;background:#0b1e30;border:1px solid #27465f;borde
 (() => {
 const KEY='c140FlightTestV2';
 const LEGACY_KEY='c140FlightTestV1';
+const MAX_PAIR_DIFF_FPM=50;
 const $=id=>document.getElementById(id);
 const state={setup:{},runs:[],current:0};
 let timerInt=null, runStartedAt=null, remaining=60, watchId=null, gpsPoints=[], wakeLock=null, deferredInstall=null;
@@ -244,28 +245,30 @@ function pairData(){
   const map={};state.runs.forEach(r=>{map[r.speed]??={speed:r.speed};map[r.speed][r.leg]=r});
   return Object.values(map).sort((a,b)=>b.speed-a.speed).map(p=>{
     const aOK=p.A&&Number.isFinite(p.A.fpm)&&!p.A.rejected,bOK=p.B&&Number.isFinite(p.B.fpm)&&!p.B.rejected,paired=aOK&&bOK;
-    const avg=paired?(p.A.fpm+p.B.fpm)/2:null,diff=paired?Math.abs(p.A.fpm-p.B.fpm):null,vxSlope=paired&&p.speed>0?avg/p.speed:null;
+    const avg=paired?(p.A.fpm+p.B.fpm)/2:null,diff=paired?Math.abs(p.A.fpm-p.B.fpm):null,vxSlope=paired&&p.speed>0?avg/p.speed:null,usable=paired&&diff<=MAX_PAIR_DIFF_FPM&&avg>0;
     const dA=aOK?(p.A.manualDistance??p.A.gpsDistanceFt):null,dB=bOK?(p.B.manualDistance??p.B.gpsDistanceFt):null,gA=aOK?p.A.altGain:null,gB=bOK?p.B.altGain:null;let groundGradient=null;
     if(Number.isFinite(dA)&&dA>0&&Number.isFinite(dB)&&dB>0&&Number.isFinite(gA)&&Number.isFinite(gB)){const gd=(dA+dB)/2,gg=(gA+gB)/2;groundGradient=gg/(gd/6076.12)}
-    return {...p,paired,avg,diff,vxSlope,groundGradient};
+    return {...p,paired,avg,diff,vxSlope,groundGradient,usable};
   });
 }
 function getBest(rows){
-  const pairs=rows.filter(r=>r.paired&&Number.isFinite(r.avg));
+  const completePairs=rows.filter(r=>r.paired&&Number.isFinite(r.avg));
+  const pairs=completePairs.filter(r=>r.usable);
   const vy=pairs.length?pairs.reduce((a,b)=>b.avg>a.avg?b:a):null;
   const vx=pairs.filter(r=>Number.isFinite(r.vxSlope)).reduce((best,r)=>!best||r.vxSlope>best.vxSlope?r:best,null);
-  return {pairs,vy,vx};
+  return {pairs,completePairs,vy,vx};
 }
 function refinementSpeeds(vx){const stall=n(state.setup.stall),vals=[vx-4,vx-2,vx,vx+2,vx+4].map(x=>Math.round(x)).filter(x=>x>0).filter(x=>stall===null||x>=stall+10);return [...new Set(vals)].sort((a,b)=>b-a)}
 function renderResults(){
-  const rows=pairData(),{pairs,vy,vx}=getBest(rows);$('vyOut').textContent=vy?`${vy.speed} mph`:'—';$('bestFpmOut').textContent=vy?Math.round(vy.avg):'—';$('vxOut').textContent=vx?`${vx.speed} mph`:'—';$('vxMethod').textContent=vx?'FAA tangent proxy: max reciprocal-pair climb ÷ IAS':'needs accepted A/B pairs';
-  const rb=$('refineBox');if(vx){const speeds=refinementSpeeds(vx.speed);rb.classList.remove('hidden');rb.innerHTML=`<b>Refine around Vx:</b> Your coarse-data candidate is ${vx.speed} mph IAS. A useful next pass is ${speeds.join(', ')} mph in 2-mph steps, while preserving the same weight/configuration as closely as practical. <button class="btn secondary" id="loadRefine" style="margin-top:10px">Load these speeds into Setup</button>`;setTimeout(()=>{const b=$('loadRefine');if(b)b.onclick=()=>{switchTab('setup');$('speeds').value=speeds.join(',');setupFromForm();$('speeds').focus()}},0)}else rb.classList.add('hidden');
-  const tb=$('resultTable').querySelector('tbody');tb.innerHTML='';rows.forEach(r=>{const tr=document.createElement('tr');let q='Incomplete',qc='';if((r.A?.rejected)||(r.B?.rejected)){q='Rejected';qc='badText'}else if(r.paired){q=r.diff<=50?'Good':'Repeat?';qc=q==='Good'?'goodText':'warnText'}tr.innerHTML=`<td><b>${r.speed}</b></td><td>${num0(!r.A?.rejected?r.A?.fpm:null)}</td><td>${num0(!r.B?.rejected?r.B?.fpm:null)}</td><td><b>${num0(r.avg)}</b></td><td>${num0(r.diff)}</td><td>${Number.isFinite(r.vxSlope)?r.vxSlope.toFixed(2):'—'}</td><td>${Number.isFinite(r.groundGradient)?Math.round(r.groundGradient)+' ft/nm':'—'}</td><td class="${qc}">${q}</td>`;tb.appendChild(tr)});
+  const rows=pairData(),{pairs,completePairs,vy,vx}=getBest(rows);$('vyOut').textContent=vy?`${vy.speed} mph`:'—';$('bestFpmOut').textContent=vy?Math.round(vy.avg):'—';$('vxOut').textContent=vx?`${vx.speed} mph`:'—';$('vxMethod').textContent=vx?'FAA tangent proxy: qualified climb ÷ IAS':completePairs.length?'no qualified positive-climb pairs':'needs accepted A/B pairs';
+  const repeatCount=completePairs.filter(r=>r.diff>MAX_PAIR_DIFF_FPM).length,noClimbCount=completePairs.filter(r=>r.diff<=MAX_PAIR_DIFF_FPM&&r.avg<=0).length,rb=$('refineBox');rb.classList.remove('danger');
+  if(vx){const speeds=refinementSpeeds(vx.speed),excluded=[];if(repeatCount)excluded.push(`${repeatCount} pair${repeatCount===1?' was':'s were'} marked Repeat?`);if(noClimbCount)excluded.push(`${noClimbCount} pair${noClimbCount===1?' had':'s had'} no positive climb`);const notice=excluded.length?`<div class="warnText"><b>Excluded:</b> ${excluded.join('; ')}.</div><div class="separator"></div>`:'';rb.classList.remove('hidden');rb.innerHTML=`${notice}<b>Refine around Vx:</b> Your coarse-data candidate is ${vx.speed} mph IAS. A useful next pass is ${speeds.join(', ')} mph in 2-mph steps, while preserving the same weight/configuration as closely as practical. <button class="btn secondary" id="loadRefine" style="margin-top:10px">Load these speeds into Setup</button>`;setTimeout(()=>{const b=$('loadRefine');if(b)b.onclick=()=>{switchTab('setup');$('speeds').value=speeds.join(',');setupFromForm();$('speeds').focus()}},0)}else if(completePairs.length){rb.classList.remove('hidden');rb.classList.add('danger');rb.innerHTML='<b>No valid Vx/Vy result.</b> No qualified positive-climb reciprocal pair remains. Repeat the runs marked Repeat? and reject data affected by turbulence, lift/sink, IAS error, or power anomalies.'}else rb.classList.add('hidden');
+  const tb=$('resultTable').querySelector('tbody');tb.innerHTML='';rows.forEach(r=>{const tr=document.createElement('tr');let q='Incomplete',qc='';if((r.A?.rejected)||(r.B?.rejected)){q='Rejected';qc='badText'}else if(r.paired&&r.avg<=0){q='No climb';qc='badText'}else if(r.paired){q=r.diff<=MAX_PAIR_DIFF_FPM?'Good':'Repeat?';qc=q==='Good'?'goodText':'warnText'}tr.innerHTML=`<td><b>${r.speed}</b></td><td>${num0(!r.A?.rejected?r.A?.fpm:null)}</td><td>${num0(!r.B?.rejected?r.B?.fpm:null)}</td><td><b>${num0(r.avg)}</b></td><td>${num0(r.diff)}</td><td>${Number.isFinite(r.vxSlope)?r.vxSlope.toFixed(2):'—'}</td><td>${Number.isFinite(r.groundGradient)?Math.round(r.groundGradient)+' ft/nm':'—'}</td><td class="${qc}">${q}</td>`;tb.appendChild(tr)});
   drawChart('rateChart',pairs.map(r=>({x:r.speed,y:r.avg})),'fpm');drawChart('gradChart',rows.filter(r=>Number.isFinite(r.groundGradient)).map(r=>({x:r.speed,y:r.groundGradient})),'ft/nm');
 }
 function num0(x){return Number.isFinite(x)?Math.round(x):'—'}
 function drawChart(id,pts,unit){const c=$(id),ctx=c.getContext('2d'),w=c.width,h=c.height;ctx.clearRect(0,0,w,h);ctx.fillStyle='#0b1e30';ctx.fillRect(0,0,w,h);if(pts.length<1){ctx.fillStyle='#91a8bb';ctx.font='16px system-ui';ctx.fillText('Enter accepted reciprocal-pair data to plot results.',24,40);return}const pad={l:58,r:20,t:24,b:45},xs=pts.map(p=>p.x),ys=pts.map(p=>p.y);let xmin=Math.min(...xs)-3,xmax=Math.max(...xs)+3,ymin=Math.min(...ys)*.9,ymax=Math.max(...ys)*1.08;if(ymax===ymin)ymax=ymin+1;const X=x=>pad.l+(x-xmin)/(xmax-xmin)*(w-pad.l-pad.r),Y=y=>h-pad.b-(y-ymin)/(ymax-ymin)*(h-pad.t-pad.b);ctx.strokeStyle='#38566f';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(pad.l,pad.t);ctx.lineTo(pad.l,h-pad.b);ctx.lineTo(w-pad.r,h-pad.b);ctx.stroke();ctx.fillStyle='#9fb5c7';ctx.font='12px system-ui';for(let i=0;i<5;i++){const y=ymin+(ymax-ymin)*i/4,py=Y(y);ctx.fillText(Math.round(y),8,py+4);ctx.strokeStyle='#203b50';ctx.beginPath();ctx.moveTo(pad.l,py);ctx.lineTo(w-pad.r,py);ctx.stroke()}[...new Set(xs)].sort((a,b)=>a-b).forEach(x=>ctx.fillText(x,X(x)-8,h-18));const sorted=[...pts].sort((a,b)=>a.x-b.x);ctx.strokeStyle='#5bbcff';ctx.lineWidth=3;ctx.beginPath();sorted.forEach((p,i)=>{i?ctx.lineTo(X(p.x),Y(p.y)):ctx.moveTo(X(p.x),Y(p.y))});ctx.stroke();ctx.fillStyle='#69d391';sorted.forEach(p=>{ctx.beginPath();ctx.arc(X(p.x),Y(p.y),6,0,Math.PI*2);ctx.fill()});ctx.fillStyle='#c9ddeb';ctx.fillText(unit,w-55,18);ctx.fillText('IAS mph',w/2-20,h-5)}
-function exportCsv(){const lines=[['Cessna 140 Flight Test v1.1'],['Date',state.setup.date],['Weight lb',state.setup.weight],['Fuel gal',state.setup.fuel],['OAT F',state.setup.oat],['Altimeter inHg',state.setup.altimeter],['Elevation ft',state.setup.elevation],['Pressure altitude ft',Math.round(pressureAltitude()||0)],['Density altitude ft',Math.round(densityAltitude()||0)],[],['IAS mph','Leg','Target heading','Start alt','End alt','Elapsed sec','RPM','Climb fpm','Rejected','Ground distance ft','Distance source','Avg groundspeed mph','GPS accuracy m','Note']];state.runs.forEach(r=>{const d=r.manualDistance??r.gpsDistanceFt,source=Number.isFinite(r.manualDistance)?'manual':Number.isFinite(r.gpsDistanceFt)?'phone GPS':'';lines.push([r.speed,r.leg,r.heading??'',r.startAlt??'',r.endAlt??'',r.elapsedSec??r.plannedSec??'',r.rpm??'',r.fpm??'',r.rejected?'yes':'no',d??'',source,r.avgGroundMph??'',r.gpsAccuracyM??'',r.note??''])});download('Cessna140_FlightTest.csv',lines.map(r=>r.map(csv).join(',')).join('\n'),'text/csv')}
+function exportCsv(){const lines=[['Cessna 140 Flight Test v1.2'],['Date',state.setup.date],['Weight lb',state.setup.weight],['Fuel gal',state.setup.fuel],['OAT F',state.setup.oat],['Altimeter inHg',state.setup.altimeter],['Elevation ft',state.setup.elevation],['Pressure altitude ft',Math.round(pressureAltitude()||0)],['Density altitude ft',Math.round(densityAltitude()||0)],[],['IAS mph','Leg','Target heading','Start alt','End alt','Elapsed sec','RPM','Climb fpm','Rejected','Ground distance ft','Distance source','Avg groundspeed mph','GPS accuracy m','Note']];state.runs.forEach(r=>{const d=r.manualDistance??r.gpsDistanceFt,source=Number.isFinite(r.manualDistance)?'manual':Number.isFinite(r.gpsDistanceFt)?'phone GPS':'';lines.push([r.speed,r.leg,r.heading??'',r.startAlt??'',r.endAlt??'',r.elapsedSec??r.plannedSec??'',r.rpm??'',r.fpm??'',r.rejected?'yes':'no',d??'',source,r.avgGroundMph??'',r.gpsAccuracyM??'',r.note??''])});download('Cessna140_FlightTest.csv',lines.map(r=>r.map(csv).join(',')).join('\n'),'text/csv')}
 function csv(v){const s=String(v??'');return /[",\n]/.test(s)?'"'+s.replaceAll('"','""')+'"':s}
 function exportJson(){download('Cessna140_FlightTest_backup.json',JSON.stringify(state,null,2),'application/json')}
 function download(name,content,type){if(window.AndroidBridge&&AndroidBridge.saveTextFile){try{AndroidBridge.saveTextFile(name,type,content);return}catch(e){}}const a=document.createElement('a'),url=URL.createObjectURL(new Blob([content],{type}));a.href=url;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000)}

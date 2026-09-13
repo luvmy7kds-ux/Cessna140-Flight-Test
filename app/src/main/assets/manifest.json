@@ -1,0 +1,13 @@
+{
+  "name": "Cessna 140 Flight Test",
+  "short_name": "C140 Test",
+  "description": "Guided Vx, Vy, climb-rate and climb-gradient flight testing for a Cessna 140.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#08131f",
+  "theme_color": "#0b2239",
+  "icons": [
+    {"src":"icon.svg","sizes":"any","type":"image/svg+xml","purpose":"any maskable"}
+  ]
+}

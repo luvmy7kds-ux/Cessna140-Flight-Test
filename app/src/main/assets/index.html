@@ -1,0 +1,290 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+<meta name="theme-color" content="#0b2239" />
+<link rel="manifest" href="manifest.json" />
+<link rel="icon" href="icon.svg" type="image/svg+xml" />
+<meta name="mobile-web-app-capable" content="yes" />
+<title>Cessna 140 Flight Test</title>
+<style>
+:root{--bg:#08131f;--panel:#10263b;--panel2:#15334e;--text:#eef6ff;--muted:#a8bdd0;--accent:#5bbcff;--good:#69d391;--warn:#ffd166;--bad:#ff7b7b;--line:#29465f;--input:#0c1d2e}
+*{box-sizing:border-box} body{margin:0;background:linear-gradient(180deg,#07111b,#0b1b2b 36%,#08131f);color:var(--text);font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;min-height:100vh}
+header{position:sticky;top:0;z-index:5;background:rgba(8,19,31,.96);backdrop-filter:blur(12px);padding:14px 16px 10px;border-bottom:1px solid var(--line)}
+.brand{display:flex;gap:12px;align-items:center}.badge{width:44px;height:44px;border-radius:12px;background:#fff;color:#0b2239;display:grid;place-items:center;font-weight:900;font-size:21px}.brand h1{font-size:20px;margin:0}.brand p{font-size:12px;margin:2px 0 0;color:var(--muted)}
+nav{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:12px}nav button{border:0;border-radius:10px;padding:10px 6px;background:#0f2940;color:var(--muted);font-weight:700}nav button.active{background:var(--accent);color:#06111b}
+main{max-width:820px;margin:auto;padding:14px 14px 90px}.tab{display:none}.tab.active{display:block}.card{background:rgba(16,38,59,.94);border:1px solid var(--line);border-radius:16px;padding:15px;margin:0 0 14px;box-shadow:0 8px 26px rgba(0,0,0,.18)}h2{font-size:19px;margin:0 0 12px}h3{font-size:16px;margin:16px 0 8px;color:#d6ebff}.small{font-size:12px;color:var(--muted)}.note{padding:11px 12px;border-radius:12px;background:#0d2032;color:#c7d8e8;border-left:4px solid var(--accent);font-size:13px;line-height:1.35}.warn{border-left-color:var(--warn)}.danger{border-left-color:var(--bad)}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}@media(max-width:560px){.grid,.grid3{grid-template-columns:1fr}.mobile2{grid-template-columns:1fr 1fr}}
+label{font-size:12px;color:var(--muted);display:block;margin-bottom:4px}input,select,textarea{width:100%;border:1px solid #35516a;background:var(--input);color:var(--text);border-radius:11px;padding:12px;font-size:16px;outline:none}input:focus,select:focus,textarea:focus{border-color:var(--accent);box-shadow:0 0 0 2px rgba(91,188,255,.15)}textarea{min-height:84px;resize:vertical}.row{display:flex;gap:9px;align-items:center;flex-wrap:wrap}.btn{appearance:none;border:0;border-radius:12px;padding:13px 16px;font-size:15px;font-weight:800;background:var(--accent);color:#06111b;cursor:pointer}.btn.secondary{background:#24435d;color:var(--text)}.btn.good{background:var(--good)}.btn.warn{background:var(--warn)}.btn.bad{background:var(--bad)}.btn.big{width:100%;padding:18px;font-size:19px}.btn:disabled{opacity:.45;cursor:not-allowed}
+.metric{background:#0b1e30;border:1px solid #27465f;border-radius:14px;padding:12px}.metric .v{font-size:25px;font-weight:900}.metric .k{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}
+.runHero{text-align:center;padding:20px 8px}.runSpeed{font-size:64px;line-height:1;font-weight:950}.runSpeed span{font-size:19px;color:var(--muted);font-weight:700}.runSub{font-size:18px;color:#cbe8ff;margin-top:8px}.timer{font-variant-numeric:tabular-nums;font-size:58px;font-weight:900;margin:18px 0}.status{display:inline-flex;padding:7px 10px;border-radius:999px;background:#163652;color:#cfeaff;font-size:12px;font-weight:800}
+.progress{height:10px;background:#0a1a29;border-radius:999px;overflow:hidden;margin:12px 0}.progress>div{height:100%;background:var(--accent);width:0%}.runList{display:flex;gap:6px;overflow-x:auto;padding:4px 0 2px}.pill{min-width:58px;text-align:center;padding:8px;border-radius:10px;background:#0d2032;color:var(--muted);border:1px solid #263f54;font-size:12px}.pill.done{background:#173d2a;color:#aef0c1;border-color:#2c6845}.pill.current{background:#144f73;color:white;border-color:#46a7db}
+table{width:100%;border-collapse:collapse;font-size:13px}th,td{padding:9px 6px;border-bottom:1px solid #29465f;text-align:right}th:first-child,td:first-child{text-align:left}th{color:#bdd2e4;font-size:11px;text-transform:uppercase}.goodText{color:var(--good)}.warnText{color:var(--warn)}.badText{color:var(--bad)}
+canvas{width:100%;height:260px;background:#0b1e30;border:1px solid #27465f;border-radius:12px}.footerbar{position:fixed;left:0;right:0;bottom:0;padding:10px max(12px,env(safe-area-inset-right)) calc(10px + env(safe-area-inset-bottom)) max(12px,env(safe-area-inset-left));background:rgba(6,15,24,.95);border-top:1px solid var(--line);z-index:6}.footerbar .inner{max-width:820px;margin:auto;display:flex;gap:8px}.footerbar button{flex:1}.hidden{display:none!important}.separator{height:1px;background:var(--line);margin:14px 0}.checkline{display:flex;gap:9px;align-items:flex-start;margin:9px 0}.checkline input{width:20px;height:20px;margin-top:1px}.mono{font-family:ui-monospace,SFMono-Regular,Menlo,monospace}.center{text-align:center}.nowrap{white-space:nowrap}.chip{display:inline-block;padding:5px 8px;border-radius:999px;background:#17324b;color:#cfeaff;font-size:11px;font-weight:800;margin:2px}.gpsDot{display:inline-block;width:8px;height:8px;border-radius:50%;background:#6b7884;margin-right:5px}.gpsDot.on{background:var(--good)}.qualityRow{display:flex;gap:10px;align-items:flex-start;margin-top:12px}.qualityRow input{width:22px;height:22px;flex:0 0 auto;margin-top:1px}.installStatus{margin-top:8px}.version{opacity:.8}
+</style>
+</head>
+<body>
+<header>
+  <div class="brand"><div class="badge">140</div><div><h1>Cessna 140 Flight Test</h1><p>Vx · Vy · climb rate · climb gradient · Android offline</p></div></div>
+  <nav>
+    <button data-tab="setup" class="active">Setup</button>
+    <button data-tab="run">Fly</button>
+    <button data-tab="results">Results</button>
+    <button data-tab="data">Data</button>
+  </nav>
+</header>
+<main>
+<section id="setup" class="tab active">
+  <div class="card">
+    <h2>Flight setup</h2>
+    <div class="note warn"><b>Use a safety pilot or passenger to operate the phone.</b> Do not enter data during takeoff, obstacle clearance, or other high-workload phases. Conduct testing at a safe altitude, in smooth air, and clear of traffic.</div>
+    <div class="grid" style="margin-top:12px">
+      <div><label>Date</label><input id="date" type="date"></div>
+      <div><label>Aircraft weight (lb)</label><input id="weight" inputmode="decimal" type="number" placeholder="1450"></div>
+      <div><label>Fuel aboard (gal)</label><input id="fuel" inputmode="decimal" type="number" placeholder="e.g. 18"></div>
+      <div><label>OAT (°F)</label><input id="oat" inputmode="decimal" type="number" placeholder="e.g. 75"></div>
+      <div><label>Altimeter setting (inHg)</label><input id="altimeter" inputmode="decimal" type="number" step="0.01" placeholder="29.92"></div>
+      <div><label>Field / reference elevation (ft MSL)</label><input id="elevation" inputmode="decimal" type="number" placeholder="1160"></div>
+      <div><label>Clean stall speed, indicated (mph)</label><input id="stall" inputmode="decimal" type="number" placeholder="verify for your airplane"></div>
+      <div><label>Test base heading (° magnetic)</label><input id="heading" inputmode="numeric" type="number" min="0" max="359" placeholder="180"></div>
+      <div><label>Run duration (sec)</label><input id="duration" inputmode="numeric" type="number" value="60" min="30" max="180"></div>
+      <div><label>Test speeds (mph IAS, comma separated)</label><input id="speeds" value="90,85,80,75,70,65"></div>
+    </div>
+    <div style="margin-top:10px"><label>Propeller / configuration / notes</label><textarea id="notes" placeholder="Prop model, tire size, rigging notes, etc."></textarea></div>
+    <div class="grid3" style="margin-top:12px">
+      <div class="metric"><div class="k">Pressure altitude</div><div class="v" id="paOut">—</div></div>
+      <div class="metric"><div class="k">Density altitude</div><div class="v" id="daOut">—</div></div>
+      <div class="metric"><div class="k">Reciprocal heading</div><div class="v" id="recipOut">—</div></div>
+    </div>
+    <div id="speedWarn" class="note warn hidden" style="margin-top:12px"></div>
+    <div class="row" style="margin-top:14px"><button class="btn big good" id="startPlan">Create / reset test plan</button></div>
+  </div>
+  <div class="card">
+    <h2>Method</h2>
+    <div class="checkline"><input type="checkbox"><div><b>Choose smooth air.</b><div class="small">Early morning usually gives cleaner data than a thermally active afternoon.</div></div></div>
+    <div class="checkline"><input type="checkbox"><div><b>Verify altimeter/static system.</b><div class="small">The app does not use the VSI to calculate climb rate.</div></div></div>
+    <div class="checkline"><input type="checkbox"><div><b>Stabilize before each run.</b><div class="small">Full throttle, flaps up, coordinated flight, target IAS stabilized before the timer starts.</div></div></div>
+    <div class="checkline"><input type="checkbox"><div><b>Fly reciprocal pairs.</b><div class="small">A and B headings reduce wind bias. Keep weight/configuration as constant as practical.</div></div></div>
+  </div>
+</section>
+
+<section id="run" class="tab">
+  <div class="card">
+    <div class="runList" id="runList"></div>
+    <div class="runHero">
+      <div class="status" id="runStatus">No test plan yet</div>
+      <div class="runSpeed" id="targetSpeed">—<span> mph IAS</span></div>
+      <div class="runSub" id="targetHeading">Create a test plan on Setup</div>
+      <div class="timer" id="timer">01:00</div>
+      <div class="progress"><div id="timerBar"></div></div>
+      <div class="small" id="gpsStatus"><span class="gpsDot"></span>GPS not active</div>
+    </div>
+    <div class="grid mobile2">
+      <div><label>Start altitude (ft MSL)</label><input id="runStartAlt" inputmode="numeric" type="number" placeholder="enter before/after run"></div>
+      <div><label>End altitude (ft MSL)</label><input id="runEndAlt" inputmode="numeric" type="number" placeholder="enter after run"></div>
+      <div><label>Climb RPM</label><input id="runRpm" inputmode="numeric" type="number" placeholder="e.g. 2300"></div>
+      <div><label>Manual ground distance (ft), optional override</label><input id="runDistance" inputmode="decimal" type="number" placeholder="leave blank to use phone GPS"></div>
+    </div>
+    <div class="qualityRow"><input id="runReject" type="checkbox"><div><b>Reject / repeat this run</b><div class="small">Check this for turbulence, obvious lift/sink, IAS error greater than ±2 mph, or a power/RPM anomaly. Rejected runs stay in the log but are excluded from Vx/Vy.</div></div></div>
+    <div style="margin-top:10px"><label>Run note, optional</label><input id="runNote" placeholder="e.g. bump at 35 sec, IAS +3 mph"></div>
+    <div class="row" style="margin-top:14px">
+      <button class="btn big good" id="startRun">START 60-SECOND RUN</button>
+      <button class="btn secondary hidden" id="stopRun">Stop early</button>
+    </div>
+    <div class="note" style="margin-top:12px">Tap <b>START</b> as the airplane crosses your chosen start altitude while already stabilized at the target IAS. The timer stops automatically. GPS, if permission is available, records horizontal distance and groundspeed only; use the airplane altimeter for the climb measurement.</div>
+  </div>
+  <div class="card">
+    <h2>Current run calculation</h2>
+    <div class="grid3">
+      <div class="metric"><div class="k">Altitude gain</div><div class="v" id="gainNow">—</div></div>
+      <div class="metric"><div class="k">Climb rate</div><div class="v" id="fpmNow">—</div></div>
+      <div class="metric"><div class="k">GPS distance</div><div class="v" id="distNow">—</div></div>
+    </div>
+    <div class="row" style="margin-top:14px"><button class="btn" id="saveRun">Save run & next</button><button class="btn secondary" id="prevRun">Previous</button><button class="btn secondary" id="nextRun">Next</button></div>
+  </div>
+</section>
+
+<section id="results" class="tab">
+  <div class="card">
+    <h2>Measured results</h2>
+    <div class="grid3">
+      <div class="metric"><div class="k">Best tested Vy</div><div class="v" id="vyOut">—</div><div class="small">highest reciprocal-pair climb rate</div></div>
+      <div class="metric"><div class="k">Best tested Vx candidate</div><div class="v" id="vxOut">—</div><div class="small" id="vxMethod">needs accepted A/B pairs</div></div>
+      <div class="metric"><div class="k">Best climb rate</div><div class="v" id="bestFpmOut">—</div><div class="small">ft/min</div></div>
+    </div>
+    <div class="note warn" style="margin-top:12px">These are <b>measured test-condition results</b>, not new approved operating limitations. Vx/Vy vary with weight and altitude. The Vx candidate uses the FAA tangent-from-origin method on the reciprocal-pair climb curve; phone GPS ground gradient is displayed separately and is <b>not</b> used to choose Vx.</div><div id="refineBox" class="note hidden" style="margin-top:12px"></div>
+  </div>
+  <div class="card">
+    <h2>Reciprocal-pair table</h2>
+    <div style="overflow:auto"><table id="resultTable"><thead><tr><th>IAS</th><th>A fpm</th><th>B fpm</th><th>Avg fpm</th><th>Δ fpm</th><th>Vx slope</th><th>Ground gradient</th><th>Quality</th></tr></thead><tbody></tbody></table></div>
+  </div>
+  <div class="card"><h2>Climb rate curve</h2><canvas id="rateChart" width="760" height="300"></canvas></div>
+  <div class="card"><h2>Measured ground-climb gradient</h2><canvas id="gradChart" width="760" height="300"></canvas><div class="small" style="margin-top:8px">This uses reciprocal phone-GPS/manual ground distances when both accepted legs are available. It is useful for documenting the test, but wind and GPS error can distort it, so the app does not use it to select Vx.</div></div>
+</section>
+
+<section id="data" class="tab">
+  <div class="card">
+    <h2>Saved test data</h2>
+    <div class="row"><button class="btn" id="exportCsv">Export CSV</button><button class="btn secondary" id="exportJson">Backup JSON</button><button class="btn secondary" id="copySummary">Copy summary</button></div>
+    <div class="separator"></div>
+    <label>Restore a JSON backup</label><input type="file" id="importJson" accept="application/json,.json">
+    <div class="separator"></div>
+    <button class="btn bad" id="eraseAll">Erase all test data</button>
+  </div>
+  <div class="card">
+    <h2>Installation / GPS</h2>
+    <div class="note">The calculator and data entry work offline after the first successful load. Browser GPS requires HTTPS and location permission. Installed as a PWA, it opens full-screen like a normal phone app.</div>
+    <div class="row" style="margin-top:12px"><button class="btn good" id="installApp">Install app on this phone</button></div>
+    <div class="small installStatus" id="installStatus">If Android does not show an install prompt, use your browser menu → <b>Add to Home screen</b> / <b>Install app</b>.</div>
+    <p class="small">No flight data is transmitted anywhere by this app. Everything is stored locally in the browser unless you export it yourself.</p>
+    <p class="small version">Version 1.1 Android · FAA AC 90-89C climb-test method</p>
+  </div>
+</section>
+</main>
+
+<div class="footerbar"><div class="inner"><button class="btn secondary" id="backBtn">◀ Back</button><button class="btn" id="nextBtn">Next ▶</button></div></div>
+
+<script>
+(() => {
+const KEY='c140FlightTestV2';
+const LEGACY_KEY='c140FlightTestV1';
+const $=id=>document.getElementById(id);
+const state={setup:{},runs:[],current:0};
+let timerInt=null, runStartedAt=null, remaining=60, watchId=null, gpsPoints=[], wakeLock=null, deferredInstall=null;
+
+function n(v){const x=parseFloat(v);return Number.isFinite(x)?x:null}
+function load(){
+  try{
+    const raw=localStorage.getItem(KEY)||localStorage.getItem(LEGACY_KEY)||'null';
+    const saved=JSON.parse(raw);
+    if(saved){Object.assign(state,saved);state.setup??={};state.runs=Array.isArray(state.runs)?state.runs:[];state.current=Math.max(0,Math.min(Number(state.current)||0,Math.max(0,state.runs.length-1)));}
+  }catch(e){}
+  const d=new Date(); $('date').value=state.setup.date||d.toISOString().slice(0,10);
+  ['weight','fuel','oat','altimeter','elevation','stall','heading','duration','speeds','notes'].forEach(id=>{ if(state.setup[id]!==undefined) $(id).value=state.setup[id]; });
+  if(!$('duration').value) $('duration').value=60;
+  if(!$('speeds').value) $('speeds').value='90,85,80,75,70,65';
+  updateCalc(); renderRun(); renderResults(); updateInstallUI();
+}
+function save(){localStorage.setItem(KEY,JSON.stringify(state));}
+function setupFromForm(){
+  ['date','weight','fuel','oat','altimeter','elevation','stall','heading','duration','speeds','notes'].forEach(id=>state.setup[id]=$(id).value);
+  updateCalc(); save();
+}
+function pressureAltitude(){const elev=n($('elevation').value),alt=n($('altimeter').value);if(elev===null||alt===null)return null;return elev+(29.92-alt)*1000}
+function densityAltitude(){const pa=pressureAltitude(),oatF=n($('oat').value);if(pa===null||oatF===null)return null;const oatC=(oatF-32)*5/9,isa=15-1.98*(pa/1000);return pa+120*(oatC-isa)}
+function reciprocal(h){return ((h+180)%360+360)%360}
+function parseSpeeds(){return $('speeds').value.split(',').map(x=>parseFloat(x.trim())).filter(Number.isFinite).filter((x,i,a)=>a.indexOf(x)===i)}
+function updateCalc(){
+  const pa=pressureAltitude(),da=densityAltitude(),h=n($('heading').value);
+  $('paOut').textContent=pa===null?'—':Math.round(pa).toLocaleString()+' ft';
+  $('daOut').textContent=da===null?'—':Math.round(da).toLocaleString()+' ft';
+  $('recipOut').textContent=h===null?'—':String(Math.round(reciprocal(h))).padStart(3,'0')+'°';
+  const stall=n($('stall').value),speeds=parseSpeeds(),low=stall===null?[]:speeds.filter(x=>x<stall+10);
+  if(low.length){$('speedWarn').classList.remove('hidden');$('speedWarn').innerHTML=`Test speed${low.length>1?'s':''} <b>${low.join(', ')}</b> mph ${low.length>1?'are':'is'} less than 10 mph above the entered clean stall speed. Remove or revise before testing.`}
+  else $('speedWarn').classList.add('hidden');
+}
+function makePlan(){
+  setupFromForm(); const speeds=parseSpeeds(); if(!speeds.length){alert('Enter at least one test speed.');return}
+  const stall=n($('stall').value); if(stall!==null&&speeds.some(s=>s<stall+10)&&!confirm('At least one speed is less than 10 mph above the stall speed you entered. Keep this test plan anyway?'))return;
+  if(state.runs.some(r=>Number.isFinite(r.fpm))&&!confirm('Create a new test plan? Existing run data will be replaced. Export a backup first if you want to keep it.'))return;
+  const base=n($('heading').value),dur=Math.max(30,Math.min(180,n($('duration').value)||60));
+  state.runs=[];speeds.forEach(sp=>{state.runs.push({speed:sp,leg:'A',heading:base,plannedSec:dur});state.runs.push({speed:sp,leg:'B',heading:base===null?null:reciprocal(base),plannedSec:dur});});
+  state.current=0;save();renderRun();renderResults();switchTab('run');
+}
+function fmtHeading(h){return h===null||h===undefined?'heading A/B':String(Math.round(h)).padStart(3,'0')+'°'}
+function currentRun(){return state.runs[state.current]||null}
+function renderRun(){
+  const r=currentRun();$('runList').innerHTML='';
+  state.runs.forEach((x,i)=>{const p=document.createElement('button');p.type='button';p.className='pill '+(x.fpm!==undefined?'done ':'')+(x.rejected?'warn ':'')+(i===state.current?'current':'');p.textContent=`${x.speed}${x.leg}${x.rejected?' ↻':''}`;p.onclick=()=>{if(timerInt)return;state.current=i;save();renderRun()};$('runList').appendChild(p)});
+  if(!r){$('runStatus').textContent='No test plan yet';$('targetSpeed').innerHTML='—<span> mph IAS</span>';$('targetHeading').textContent='Create a test plan on Setup';$('startRun').disabled=true;return}
+  $('startRun').disabled=!!timerInt;$('runStatus').textContent=`Run ${state.current+1} of ${state.runs.length} · ${r.leg==='A'?'first':'reciprocal'} heading`;
+  $('targetSpeed').innerHTML=`${r.speed}<span> mph IAS</span>`;$('targetHeading').textContent=`Target heading ${fmtHeading(r.heading)} · full throttle · flaps up`;
+  $('runStartAlt').value=r.startAlt??'';$('runEndAlt').value=r.endAlt??'';$('runRpm').value=r.rpm??'';$('runDistance').value=r.manualDistance??'';$('runReject').checked=!!r.rejected;$('runNote').value=r.note??'';
+  remaining=r.plannedSec||60;updateTimerDisplay();updateRunMetrics();
+  if(Number.isFinite(r.gpsDistanceFt))setGps(`Saved GPS: ${Math.round(r.gpsDistanceFt).toLocaleString()} ft · ${r.gpsPointCount||'?'} points`,true);else setGps('GPS not active',false);
+}
+function updateRunMetrics(){
+  const start=n($('runStartAlt').value),end=n($('runEndAlt').value),r=currentRun(),sec=r?.elapsedSec||r?.plannedSec||n($('duration').value)||60,gain=(start!==null&&end!==null)?end-start:null;
+  $('gainNow').textContent=gain===null?'—':Math.round(gain)+' ft';$('fpmNow').textContent=gain===null?'—':Math.round(gain*60/sec)+' fpm';
+  const manual=n($('runDistance').value),d=manual??r?.gpsDistanceFt;$('distNow').textContent=Number.isFinite(d)?Math.round(d).toLocaleString()+' ft':'—';
+}
+function updateTimerDisplay(){const sec=Math.max(0,remaining),m=Math.floor(sec/60),s=Math.ceil(sec%60)%60;$('timer').textContent=`${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;const r=currentRun(),total=r?.plannedSec||60;$('timerBar').style.width=Math.max(0,Math.min(100,100*(1-sec/total)))+'%'}
+async function acquireWake(){try{if('wakeLock'in navigator)wakeLock=await navigator.wakeLock.request('screen')}catch(e){}}
+function releaseWake(){try{wakeLock?.release()}catch(e){}wakeLock=null}
+function startGPS(){gpsPoints=[];if(window.AndroidBridge&&AndroidBridge.startGps){try{if(AndroidBridge.hasLocationPermission&&!AndroidBridge.hasLocationPermission()){setGps('GPS permission unavailable · manual distance optional',false);return}AndroidBridge.startGps();setGps('Native GPS recording',true);return}catch(e){}}if(!navigator.geolocation){setGps('GPS unavailable',false);return}try{watchId=navigator.geolocation.watchPosition(pos=>{gpsPoints.push({lat:pos.coords.latitude,lon:pos.coords.longitude,t:pos.timestamp,speed:pos.coords.speed,heading:pos.coords.heading,acc:pos.coords.accuracy});setGps(`GPS recording · ±${Math.round(pos.coords.accuracy||0)} m`,true)},()=>setGps('GPS permission unavailable',false),{enableHighAccuracy:true,maximumAge:500,timeout:10000})}catch(e){setGps('GPS unavailable',false)}}
+function stopGPS(){if(window.AndroidBridge&&AndroidBridge.stopGpsAndGetJson){try{gpsPoints=JSON.parse(AndroidBridge.stopGpsAndGetJson()||'[]');setGps(gpsPoints.length?`Native GPS captured ${gpsPoints.length} points`:'GPS not captured',gpsPoints.length>1);return}catch(e){}}if(watchId!==null){navigator.geolocation.clearWatch(watchId);watchId=null}setGps(gpsPoints.length?`GPS captured ${gpsPoints.length} points`:'GPS not captured',gpsPoints.length>1)}
+function setGps(txt,on){$('gpsStatus').innerHTML=`<span class="gpsDot ${on?'on':''}"></span>${txt}`}
+function hav(a,b){const R=20902231,p1=a.lat*Math.PI/180,p2=b.lat*Math.PI/180,dp=(b.lat-a.lat)*Math.PI/180,dl=(b.lon-a.lon)*Math.PI/180,q=Math.sin(dp/2)**2+Math.cos(p1)*Math.cos(p2)*Math.sin(dl/2)**2;return 2*R*Math.atan2(Math.sqrt(q),Math.sqrt(1-q))}
+function circularMeanDeg(vals){if(!vals.length)return null;const x=vals.reduce((a,d)=>a+Math.cos(d*Math.PI/180),0),y=vals.reduce((a,d)=>a+Math.sin(d*Math.PI/180),0);return (Math.atan2(y,x)*180/Math.PI+360)%360}
+function gpsStats(){
+  if(gpsPoints.length<2)return {distance:null,avgMph:null,heading:null,accuracy:null};
+  const first=gpsPoints[0],last=gpsPoints[gpsPoints.length-1],distance=hav(first,last),dt=(last.t-first.t)/1000;
+  const speedSamples=gpsPoints.map(p=>p.speed).filter(Number.isFinite).map(mps=>mps*2.236936),avgFromSensor=speedSamples.length?speedSamples.reduce((a,b)=>a+b,0)/speedSamples.length:null;
+  const avgMph=avgFromSensor??(dt>0?distance/dt*0.681818:null),heads=gpsPoints.map(p=>p.heading).filter(Number.isFinite),accs=gpsPoints.map(p=>p.acc).filter(Number.isFinite);
+  return {distance,avgMph,heading:circularMeanDeg(heads),accuracy:accs.length?accs.reduce((a,b)=>a+b,0)/accs.length:null};
+}
+function startRun(){
+  const r=currentRun();if(!r){alert('Create a test plan first.');return}if(timerInt)return;
+  remaining=r.plannedSec||60;runStartedAt=Date.now();gpsPoints=[];startGPS();acquireWake();$('startRun').disabled=true;$('stopRun').classList.remove('hidden');$('runStatus').textContent='RUNNING — hold target IAS';
+  timerInt=setInterval(()=>{remaining=(r.plannedSec||60)-(Date.now()-runStartedAt)/1000;updateTimerDisplay();if(remaining<=0)finishRun(false)},100);
+}
+function finishRun(early){
+  if(!timerInt)return;clearInterval(timerInt);timerInt=null;const r=currentRun(),planned=r?.plannedSec||60,actual=(Date.now()-runStartedAt)/1000;remaining=0;updateTimerDisplay();stopGPS();releaseWake();
+  r.elapsedSec=early?actual:planned;const gs=gpsStats();if(Number.isFinite(gs.distance)&&gs.distance>0)r.gpsDistanceFt=gs.distance;if(Number.isFinite(gs.avgMph))r.avgGroundMph=gs.avgMph;if(Number.isFinite(gs.heading))r.gpsHeading=gs.heading;if(Number.isFinite(gs.accuracy))r.gpsAccuracyM=gs.accuracy;r.gpsPointCount=gpsPoints.length;
+  $('startRun').disabled=false;$('stopRun').classList.add('hidden');$('runStatus').textContent=early?'Stopped early — enter altitudes or reject':'Complete — enter end altitude and RPM';try{navigator.vibrate?.([250,120,250])}catch(e){};beep();save();updateRunMetrics();
+}
+function beep(){try{const ac=new(window.AudioContext||window.webkitAudioContext)(),o=ac.createOscillator(),g=ac.createGain();o.frequency.value=880;g.gain.value=.05;o.connect(g);g.connect(ac.destination);o.start();setTimeout(()=>{o.stop();ac.close()},350)}catch(e){}}
+function saveRun(){
+  const r=currentRun();if(!r)return;const start=n($('runStartAlt').value),end=n($('runEndAlt').value),rpm=n($('runRpm').value),manual=n($('runDistance').value),rejected=$('runReject').checked,note=$('runNote').value.trim();
+  if(start===null||end===null){alert('Enter start and end altitudes.');return}const sec=r.elapsedSec||r.plannedSec||60;if(end<=start&&!rejected&&!confirm('End altitude is not higher than start altitude. Save anyway?'))return;
+  r.startAlt=start;r.endAlt=end;r.rpm=rpm;r.manualDistance=manual;r.rejected=rejected;r.note=note;r.altGain=end-start;r.fpm=(end-start)*60/sec;save();renderResults();if(state.current<state.runs.length-1)state.current++;save();renderRun();
+}
+function pairData(){
+  const map={};state.runs.forEach(r=>{map[r.speed]??={speed:r.speed};map[r.speed][r.leg]=r});
+  return Object.values(map).sort((a,b)=>b.speed-a.speed).map(p=>{
+    const aOK=p.A&&Number.isFinite(p.A.fpm)&&!p.A.rejected,bOK=p.B&&Number.isFinite(p.B.fpm)&&!p.B.rejected,paired=aOK&&bOK;
+    const avg=paired?(p.A.fpm+p.B.fpm)/2:null,diff=paired?Math.abs(p.A.fpm-p.B.fpm):null,vxSlope=paired&&p.speed>0?avg/p.speed:null;
+    const dA=aOK?(p.A.manualDistance??p.A.gpsDistanceFt):null,dB=bOK?(p.B.manualDistance??p.B.gpsDistanceFt):null,gA=aOK?p.A.altGain:null,gB=bOK?p.B.altGain:null;let groundGradient=null;
+    if(Number.isFinite(dA)&&dA>0&&Number.isFinite(dB)&&dB>0&&Number.isFinite(gA)&&Number.isFinite(gB)){const gd=(dA+dB)/2,gg=(gA+gB)/2;groundGradient=gg/(gd/6076.12)}
+    return {...p,paired,avg,diff,vxSlope,groundGradient};
+  });
+}
+function getBest(rows){
+  const pairs=rows.filter(r=>r.paired&&Number.isFinite(r.avg));
+  const vy=pairs.length?pairs.reduce((a,b)=>b.avg>a.avg?b:a):null;
+  const vx=pairs.filter(r=>Number.isFinite(r.vxSlope)).reduce((best,r)=>!best||r.vxSlope>best.vxSlope?r:best,null);
+  return {pairs,vy,vx};
+}
+function refinementSpeeds(vx){const stall=n(state.setup.stall),vals=[vx-4,vx-2,vx,vx+2,vx+4].map(x=>Math.round(x)).filter(x=>x>0).filter(x=>stall===null||x>=stall+10);return [...new Set(vals)].sort((a,b)=>b-a)}
+function renderResults(){
+  const rows=pairData(),{pairs,vy,vx}=getBest(rows);$('vyOut').textContent=vy?`${vy.speed} mph`:'—';$('bestFpmOut').textContent=vy?Math.round(vy.avg):'—';$('vxOut').textContent=vx?`${vx.speed} mph`:'—';$('vxMethod').textContent=vx?'FAA tangent proxy: max reciprocal-pair climb ÷ IAS':'needs accepted A/B pairs';
+  const rb=$('refineBox');if(vx){const speeds=refinementSpeeds(vx.speed);rb.classList.remove('hidden');rb.innerHTML=`<b>Refine around Vx:</b> Your coarse-data candidate is ${vx.speed} mph IAS. A useful next pass is ${speeds.join(', ')} mph in 2-mph steps, while preserving the same weight/configuration as closely as practical. <button class="btn secondary" id="loadRefine" style="margin-top:10px">Load these speeds into Setup</button>`;setTimeout(()=>{const b=$('loadRefine');if(b)b.onclick=()=>{switchTab('setup');$('speeds').value=speeds.join(',');setupFromForm();$('speeds').focus()}},0)}else rb.classList.add('hidden');
+  const tb=$('resultTable').querySelector('tbody');tb.innerHTML='';rows.forEach(r=>{const tr=document.createElement('tr');let q='Incomplete',qc='';if((r.A?.rejected)||(r.B?.rejected)){q='Rejected';qc='badText'}else if(r.paired){q=r.diff<=50?'Good':'Repeat?';qc=q==='Good'?'goodText':'warnText'}tr.innerHTML=`<td><b>${r.speed}</b></td><td>${num0(!r.A?.rejected?r.A?.fpm:null)}</td><td>${num0(!r.B?.rejected?r.B?.fpm:null)}</td><td><b>${num0(r.avg)}</b></td><td>${num0(r.diff)}</td><td>${Number.isFinite(r.vxSlope)?r.vxSlope.toFixed(2):'—'}</td><td>${Number.isFinite(r.groundGradient)?Math.round(r.groundGradient)+' ft/nm':'—'}</td><td class="${qc}">${q}</td>`;tb.appendChild(tr)});
+  drawChart('rateChart',pairs.map(r=>({x:r.speed,y:r.avg})),'fpm');drawChart('gradChart',rows.filter(r=>Number.isFinite(r.groundGradient)).map(r=>({x:r.speed,y:r.groundGradient})),'ft/nm');
+}
+function num0(x){return Number.isFinite(x)?Math.round(x):'—'}
+function drawChart(id,pts,unit){const c=$(id),ctx=c.getContext('2d'),w=c.width,h=c.height;ctx.clearRect(0,0,w,h);ctx.fillStyle='#0b1e30';ctx.fillRect(0,0,w,h);if(pts.length<1){ctx.fillStyle='#91a8bb';ctx.font='16px system-ui';ctx.fillText('Enter accepted reciprocal-pair data to plot results.',24,40);return}const pad={l:58,r:20,t:24,b:45},xs=pts.map(p=>p.x),ys=pts.map(p=>p.y);let xmin=Math.min(...xs)-3,xmax=Math.max(...xs)+3,ymin=Math.min(...ys)*.9,ymax=Math.max(...ys)*1.08;if(ymax===ymin)ymax=ymin+1;const X=x=>pad.l+(x-xmin)/(xmax-xmin)*(w-pad.l-pad.r),Y=y=>h-pad.b-(y-ymin)/(ymax-ymin)*(h-pad.t-pad.b);ctx.strokeStyle='#38566f';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(pad.l,pad.t);ctx.lineTo(pad.l,h-pad.b);ctx.lineTo(w-pad.r,h-pad.b);ctx.stroke();ctx.fillStyle='#9fb5c7';ctx.font='12px system-ui';for(let i=0;i<5;i++){const y=ymin+(ymax-ymin)*i/4,py=Y(y);ctx.fillText(Math.round(y),8,py+4);ctx.strokeStyle='#203b50';ctx.beginPath();ctx.moveTo(pad.l,py);ctx.lineTo(w-pad.r,py);ctx.stroke()}[...new Set(xs)].sort((a,b)=>a-b).forEach(x=>ctx.fillText(x,X(x)-8,h-18));const sorted=[...pts].sort((a,b)=>a.x-b.x);ctx.strokeStyle='#5bbcff';ctx.lineWidth=3;ctx.beginPath();sorted.forEach((p,i)=>{i?ctx.lineTo(X(p.x),Y(p.y)):ctx.moveTo(X(p.x),Y(p.y))});ctx.stroke();ctx.fillStyle='#69d391';sorted.forEach(p=>{ctx.beginPath();ctx.arc(X(p.x),Y(p.y),6,0,Math.PI*2);ctx.fill()});ctx.fillStyle='#c9ddeb';ctx.fillText(unit,w-55,18);ctx.fillText('IAS mph',w/2-20,h-5)}
+function exportCsv(){const lines=[['Cessna 140 Flight Test v1.1'],['Date',state.setup.date],['Weight lb',state.setup.weight],['Fuel gal',state.setup.fuel],['OAT F',state.setup.oat],['Altimeter inHg',state.setup.altimeter],['Elevation ft',state.setup.elevation],['Pressure altitude ft',Math.round(pressureAltitude()||0)],['Density altitude ft',Math.round(densityAltitude()||0)],[],['IAS mph','Leg','Target heading','Start alt','End alt','Elapsed sec','RPM','Climb fpm','Rejected','Ground distance ft','Distance source','Avg groundspeed mph','GPS accuracy m','Note']];state.runs.forEach(r=>{const d=r.manualDistance??r.gpsDistanceFt,source=Number.isFinite(r.manualDistance)?'manual':Number.isFinite(r.gpsDistanceFt)?'phone GPS':'';lines.push([r.speed,r.leg,r.heading??'',r.startAlt??'',r.endAlt??'',r.elapsedSec??r.plannedSec??'',r.rpm??'',r.fpm??'',r.rejected?'yes':'no',d??'',source,r.avgGroundMph??'',r.gpsAccuracyM??'',r.note??''])});download('Cessna140_FlightTest.csv',lines.map(r=>r.map(csv).join(',')).join('\n'),'text/csv')}
+function csv(v){const s=String(v??'');return /[",\n]/.test(s)?'"'+s.replaceAll('"','""')+'"':s}
+function exportJson(){download('Cessna140_FlightTest_backup.json',JSON.stringify(state,null,2),'application/json')}
+function download(name,content,type){if(window.AndroidBridge&&AndroidBridge.saveTextFile){try{AndroidBridge.saveTextFile(name,type,content);return}catch(e){}}const a=document.createElement('a'),url=URL.createObjectURL(new Blob([content],{type}));a.href=url;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000)}
+async function copySummary(){const rows=pairData(),{vy,vx}=getBest(rows),t=`Cessna 140 flight test ${state.setup.date||''}\nWeight: ${state.setup.weight||'—'} lb; DA: ${Math.round(densityAltitude()||0)} ft\nBest tested Vy: ${vy?vy.speed+' mph IAS / '+Math.round(vy.avg)+' fpm':'—'}\nBest tested Vx candidate: ${vx?vx.speed+' mph IAS (FAA tangent proxy)':'—'}`;try{await navigator.clipboard.writeText(t);alert('Summary copied.')}catch(e){prompt('Copy this summary:',t)}}
+function switchTab(id){document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('active',x.id===id));document.querySelectorAll('nav button').forEach(x=>x.classList.toggle('active',x.dataset.tab===id));if(id==='results')renderResults();window.scrollTo({top:0,behavior:'smooth'})}
+function navRelative(delta){const ids=['setup','run','results','data'],cur=ids.findIndex(id=>$(id).classList.contains('active'));switchTab(ids[Math.max(0,Math.min(ids.length-1,cur+delta))])}
+function updateInstallUI(){const native=!!window.AndroidBridge,installed=native||window.matchMedia?.('(display-mode: standalone)').matches||window.navigator.standalone===true;$('installApp').classList.toggle('hidden',installed);if(native)$('installStatus').textContent='Native Android app installed · GPS and offline mode ready.';else if(installed)$('installStatus').textContent='Installed app mode is active on this device.'}
+async function installApp(){if(deferredInstall){deferredInstall.prompt();await deferredInstall.userChoice;deferredInstall=null;updateInstallUI()}else{$('installStatus').innerHTML='Open your browser menu and choose <b>Add to Home screen</b> or <b>Install app</b>. The install prompt only appears after the site is served over HTTPS.'}}
+window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferredInstall=e;$('installStatus').textContent='Ready to install on this phone.'});window.addEventListener('appinstalled',()=>{deferredInstall=null;updateInstallUI()});
+['date','weight','fuel','oat','altimeter','elevation','stall','heading','duration','speeds','notes'].forEach(id=>$(id).addEventListener('input',setupFromForm));
+['runStartAlt','runEndAlt','runRpm','runDistance'].forEach(id=>$(id).addEventListener('input',updateRunMetrics));
+document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>switchTab(b.dataset.tab));
+$('startPlan').onclick=makePlan;$('startRun').onclick=startRun;$('stopRun').onclick=()=>finishRun(true);$('saveRun').onclick=saveRun;$('prevRun').onclick=()=>{if(!timerInt&&state.current>0){state.current--;save();renderRun()}};$('nextRun').onclick=()=>{if(!timerInt&&state.current<state.runs.length-1){state.current++;save();renderRun()}};$('exportCsv').onclick=exportCsv;$('exportJson').onclick=exportJson;$('copySummary').onclick=copySummary;$('backBtn').onclick=()=>navRelative(-1);$('nextBtn').onclick=()=>navRelative(1);$('installApp').onclick=installApp;
+$('eraseAll').onclick=()=>{if(confirm('Erase all saved flight-test data on this device?')){localStorage.removeItem(KEY);localStorage.removeItem(LEGACY_KEY);location.reload()}};
+$('importJson').onchange=async e=>{const f=e.target.files?.[0];if(!f)return;try{const o=JSON.parse(await f.text());if(!o||!Array.isArray(o.runs)||typeof o.setup!=='object')throw new Error('bad shape');localStorage.setItem(KEY,JSON.stringify(o));location.reload()}catch(err){alert('That file is not a valid Cessna 140 flight-test backup.')}};
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'&&timerInt)acquireWake()});
+if('serviceWorker'in navigator&&location.protocol.startsWith('http'))navigator.serviceWorker.register('./service-worker.js').catch(()=>{});
+load();
+})();
+</script>
+</body>
+</html>
